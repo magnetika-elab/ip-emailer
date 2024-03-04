@@ -100,6 +100,11 @@ def make_email_html(headers, table_items):
 <!DOCTYPE html>
 <html>
     <head>
+        <meta
+            http-equiv="Content-Type"
+            content="text/html charset=UTF-8 width=device-width, initial-scale=1"
+            name="viewport"
+        />
 {html_style}
     </head>
     <body>
