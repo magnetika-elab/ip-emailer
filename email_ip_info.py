@@ -61,6 +61,9 @@ def send_email(to, subject, body):
             time.sleep(10 if retries == 3 else 1)
     return False
 
+def indent(input_string, amount, char='\t'):
+    return (char*amount)+('\n'+char*amount).join(input_string.splitlines())
+
 
 def get_interfaces_and_ips():
     interface_ips = {}
@@ -90,7 +93,7 @@ def make_table_html(headers, table_items):
         f'{interface_rows}\n'
         '</table>'
     )
-    return table_html
+    return table_html.replace('\t', '    ')
 
 def make_email_html(headers, table_items):
     table_html = make_table_html(headers, table_items)
@@ -109,8 +112,8 @@ def make_email_html(headers, table_items):
     </body>
 </html>'''.format(
     hostname = socket.gethostname(), 
-    html_style='\t\t'+'\n\t\t'.join(html_style.splitlines()), 
-    table_html='\t\t\t'+'\n\t\t\t'.join(table_html.splitlines())
+    html_style=indent(html_style, 2, '    '),
+    table_html=indent(table_html, 3, '    '),
     )
     inline_html = transform(page_html)
     return inline_html
