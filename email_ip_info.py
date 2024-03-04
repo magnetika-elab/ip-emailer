@@ -74,15 +74,15 @@ def make_table_html(headers, table_items):
     hostname = socket.gethostname()
     header_row = (
         f'\t<tr>\n'
-        f'\t\t<th colspan="2" style="text-align: center; "><h2><span id="hostname_text">hostname: </span>{hostname}</h2></th>\n'
+        f'\t\t<th colspan="2" id="hostname"; "><h2><span id="hostname_text">hostname: </span>{hostname}</h2></th>\n'
         f'\t</tr>\n'
         f'\t<tr>\n'
-        + '\n'.join([f'\t\t<th>{header}</th>' for header in headers])
+        + '\n'.join([f'\t\t<th id="{("left_col_header", "right_col_header")[i % 2]}">{header}</th>' for i, header in enumerate(headers)])
         + '\n\t</tr>'
     )
     interface_rows = '\n'.join([
-        '\t<tr>\n' + '\n'.join([f'\t\t<td>{item}</td>' for item in entry]) + '\n\t</tr>'
-        for entry in table_items
+        f'\t<tr id="{("left_col", "right_col")[i % 2]}">\n' + '\n'.join([f'\t\t<td>{item}</td>' for item in entry]) + '\n\t</tr>'
+        for i, entry in enumerate(table_items)
     ])
     table_html = (
         '<table style="width:100%">\n'
