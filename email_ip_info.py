@@ -130,7 +130,6 @@ def run_check_loop():
         if have_internet() and (interfaces_and_ips != last_interfaces_and_ips):
             subject = f'{socket.gethostname()} Ips'
             email_html = make_email_html(('interface','ip address'), interfaces_and_ips)
-            exit()
             email_addresses = get_email_list()
             for email_address in email_addresses:
                 send_email(
