@@ -125,14 +125,19 @@ def get_email_list(filename=None):
         email_addresses = file.read().strip().splitlines()
     return email_addresses
 
-
 def run_check_loop():
-    last_interfaces_and_ips = None
+    pickle_file = 'last_interfaces_and_ips.pickle'
+    if os.path.exists(pickle_file):
+        with open(pickle_file, 'rb') as f:
+            last_interfaces_and_ips = pickle.load(f)
+    else:
+        last_interfaces_and_ips = None
+
     while True:
-        interfaces_and_ips = get_interfaces_and_ips().items()
+        interfaces_and_ips = dict(get_interfaces_and_ips())
         if have_internet() and (interfaces_and_ips != last_interfaces_and_ips):
             subject = f'{socket.gethostname()} Ips'
-            email_html = make_email_html(('interface','ip address'), interfaces_and_ips)
+            email_html = make_email_html(('interface', 'ip address'), interfaces_and_ips.items())
             email_addresses = get_email_list()
             for email_address in email_addresses:
                 send_email(
@@ -141,6 +146,8 @@ def run_check_loop():
                     email_html
                 )
             last_interfaces_and_ips = interfaces_and_ips
+            with open(pickle_file, 'wb') as f:
+                pickle.dump(last_interfaces_and_ips, f)
         time.sleep(1)
 
 if __name__ == "__main__":  
