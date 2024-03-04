@@ -70,61 +70,51 @@ def get_interfaces_and_ips():
                 interface_ips[interface] = addr.address
     return interface_ips
 
-def make_email_html( headers, table_items):
-    header_row = '\t<tr>\n\t\t<th colspan="2" style="text-align: center; "><h2><span id="hostname_text">hostname: </span>{hostname}</h2>\n\t</tr>\n'.format(hostname = socket.gethostname())+'\t<tr>\n' + '\n'.join([f'\t\t<th>{header}</th>' for header in headers]) + '\n\t</tr>'
-    interface_rows = '\n'.join(['\t<tr>\n' + '\n'.join([f'\t\t<td>{item}</td>' for item in entry]) + '\n\t</tr>' for entry in table_items])
-    table_html = (
-        '\t<table style="width:100%">\n'
-        '{header_row}\n'  # Adjusted indentation
-        '{interface_rows}\n'  # Adjusted indentation
-        '\t</table>'
-    ).format(
-        header_row=header_row,
-        interface_rows=interface_rows
+def make_table_html(headers, table_items):
+    hostname = socket.gethostname()
+    header_row = (
+        f'\t<tr>\n'
+        f'\t\t<th colspan="2" style="text-align: center; "><h2><span id="hostname_text">hostname: </span>{hostname}</h2></th>\n'
+        f'\t</tr>\n'
+        f'\t<tr>\n'
+        + '\n'.join([f'\t\t<th>{header}</th>' for header in headers])
+        + '\n\t</tr>'
     )
-    page_html = '''<!DOCTYPE html>
+    interface_rows = '\n'.join([
+        '\t<tr>\n' + '\n'.join([f'\t\t<td>{item}</td>' for item in entry]) + '\n\t</tr>'
+        for entry in table_items
+    ])
+    table_html = (
+        '<table style="width:100%">\n'
+        f'{header_row}\n'
+        f'{interface_rows}\n'
+        '</table>'
+    )
+    return table_html
+
+def make_email_html(headers, table_items):
+    table_html = make_table_html(headers, table_items)
+    with open('style.html', 'r') as file:
+        html_style = file.read()
+    page_html = '''
+<!DOCTYPE html>
 <html>
-        <style>
-                #hostname_text {
-                   font-size: 0.75em;
-                }
-                #tablestuff, table {
-                  color: lightgrey;
-                  background-color: black;
-                  display: inline-block;
-                }
-                table {
-                  font-family: arial, sans-serif;
-                  border-collapse: collapse;
-                  width: 100%;
-                }
-                td {
-                  text-align: left;
-                  padding: 8px;
-                }
-                th {
-                  text-align: center;
-                  padding: 8px;
-                }
-                th, td {
-                  border: 1px solid #444444;
-                  padding: 8px;
-                }
-                h2 {
-                  font-family: Arial, sans-serif;
-                  margin-top: 0;
-                  margin-bottom: 0;
-                  text-align: center;
-                }
-        </style>'''+'''
-        <body>
-            <div id="tablestuff">
-                {table_html}
-            </div>
-        </body>
-</html>'''.format(hostname = socket.gethostname(), table_html=table_html)
+    <head>
+{html_style}
+    </head>
+    <body>
+        <div id="tablestuff">
+{table_html}
+        </div>
+    </body>
+</html>'''.format(
+    hostname = socket.gethostname(), 
+    html_style='\t\t'+'\n\t\t'.join(html_style.splitlines()), 
+    table_html='\t\t\t'+'\n\t\t\t'.join(table_html.splitlines())
+    )
     inline_html = transform(page_html)
     return inline_html
+
 
 def get_email_list(filename=None):
     filename = filename if filename else os.path.join(os.getcwd(), 'ip_email_list.txt')
@@ -140,6 +130,7 @@ def run_check_loop():
         if have_internet() and (interfaces_and_ips != last_interfaces_and_ips):
             subject = f'{socket.gethostname()} Ips'
             email_html = make_email_html(('interface','ip address'), interfaces_and_ips)
+            exit()
             email_addresses = get_email_list()
             for email_address in email_addresses:
                 send_email(
